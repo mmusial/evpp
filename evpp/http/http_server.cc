@@ -35,21 +35,7 @@ Server::~Server() {
 }
 
 bool Server::Init(int listen_port) {
-    status_.store(kInitializing);
-    ListenThread lt;
-    lt.thread = std::make_shared<EventLoopThread>();
-    lt.thread->set_name(std::string("StandaloneHTTPServer-Main-") + std::to_string(listen_port));
-
-    lt.hservice = std::make_shared<Service>(lt.thread->loop());
-    if (!lt.hservice->Listen(listen_port)) {
-        int serrno = errno;
-        LOG_ERROR << "this=" << this << " http server listen at port " << listen_port << " failed. errno=" << serrno << " " << strerror(serrno);
-        lt.hservice->Stop();
-        return false;
-    }
-    listen_threads_.push_back(lt);
-    status_.store(kInitialized);
-    return true;
+    return Init("0.0.0.0", listen_port);
 }
 
 bool Server::Init(const std::vector<int>& listen_ports) {
@@ -88,6 +74,24 @@ bool Server::Init(const std::string& listen_ports/*"80,8080,443"*/) {
         status_.store(kInitializing);
     }
     return rc;
+}
+
+bool Server::Init(const std::string& net_interface_address, int listen_port) {
+    status_.store(kInitializing);
+    ListenThread lt;
+    lt.thread = std::make_shared<EventLoopThread>();
+    lt.thread->set_name(std::string("StandaloneHTTPServer-Main-") + std::to_string(listen_port));
+
+    lt.hservice = std::make_shared<Service>(lt.thread->loop());
+    if (!lt.hservice->Listen(net_interface_address, listen_port)) {
+        int serrno = errno;
+        LOG_ERROR << "this=" << this << " http server listen at port " << listen_port << " failed. errno=" << serrno << " " << strerror(serrno);
+        lt.hservice->Stop();
+        return false;
+    }
+    listen_threads_.push_back(lt);
+    status_.store(kInitialized);
+    return true;
 }
 
 void Server::AfterFork() {
@@ -315,3 +319,4 @@ Service* Server::service(int index) const {
 }
 }
 }
+

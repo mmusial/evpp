@@ -46,17 +46,21 @@ Service::~Service() {
 }
 
 bool Service::Listen(int listen_port) {
+    return Listen("0.0.0.0", listen_port);
+}
+
+bool Service::Listen(const std::string& net_interface_address, int listen_port) {
     assert(evhttp_);
     assert(listen_loop_->IsInLoopThread());
     port_ = listen_port;
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02001500
-    evhttp_bound_socket_ = evhttp_bind_socket_with_handle(evhttp_, "0.0.0.0", listen_port);
+    evhttp_bound_socket_ = evhttp_bind_socket_with_handle(evhttp_, net_interface_address.c_str(), listen_port);
     if (!evhttp_bound_socket_) {
         return false;
     }
 #else
-    if (evhttp_bind_socket(evhttp_, "0.0.0.0", listen_port) != 0) {
+    if (evhttp_bind_socket(evhttp_, net_interface_address.c_str(), listen_port) != 0) {
         return false;
     }
 #endif
@@ -223,3 +227,4 @@ void Service::SendReply(const ContextPtr& ctx, const std::string& response_data)
 }
 }
 }
+

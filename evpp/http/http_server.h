@@ -39,6 +39,7 @@ public:
     bool Init(int listen_port);
     bool Init(const std::vector<int>& listen_ports);
     bool Init(const std::string& listen_ports/*like "80,8080,443"*/);
+    bool Init(const std::string& net_interface_address, int listen_port);
 
     bool Start();
 

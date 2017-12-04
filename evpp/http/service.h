@@ -18,6 +18,7 @@ public:
     ~Service();
 
     bool Listen(int port);
+    bool Listen(const std::string& net_interface_address, int port);
     void Stop();
     void Pause();
     void Continue();
